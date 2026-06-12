@@ -9,7 +9,7 @@ class IdeaRequest(models.Model):
     _name = 'idea.request'
     _description = 'Idea / Feature Request'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _order = 'trending_score desc, score desc, create_date desc'
+    _order = 'score desc, create_date desc'
 
     # Basic fields
     name = fields.Char(string='Title', required=True, tracking=True)

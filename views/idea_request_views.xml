@@ -103,7 +103,7 @@
         <field name="name">idea.request.feed</field>
         <field name="model">idea.request</field>
         <field name="arch" type="xml">
-            <kanban class="o_idea_feed_kanban" default_group_by="" default_order="trending_score desc, score desc, create_date desc" group_create="false" group_delete="false" records_draggable="0" quick_create="false">
+            <kanban class="o_idea_feed_kanban" default_group_by="" default_order="score desc, create_date desc" group_create="false" group_delete="false" records_draggable="0" quick_create="false">
                 <field name="name"/>
                 <field name="score"/>
                 <field name="upvote_count"/>
