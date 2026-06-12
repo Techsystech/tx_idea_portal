@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ========================= LIST VIEW ========================= -->
+    <record id="view_idea_request_tree" model="ir.ui.view">
+        <field name="name">idea.request.list</field>
+        <field name="model">idea.request</field>
+        <field name="arch" type="xml">
+            <list string="Ideas">
+                <field name="number" optional="show"/>
+                <field name="name"/>
+                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="show"/>
+                <field name="submitter_id" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-info="state in ('planned','in_progress')" decoration-muted="state == 'declined'" decoration-warning="state == 'duplicate'" optional="show"/>
+                <field name="score" optional="show"/>
+                <field name="upvote_count" optional="show"/>
+                <field name="downvote_count" optional="hide"/>
+                <field name="comment_count" optional="show"/>
+                <field name="trending_score" optional="hide"/>
+                <field name="create_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ========================= FORM VIEW ========================= -->
+    <record id="view_idea_request_form" model="ir.ui.view">
+        <field name="name">idea.request.form</field>
+        <field name="model">idea.request</field>
+        <field name="arch" type="xml">
+            <form string="Idea">
+                <header>
+                    <button name="action_plan" string="Plan" type="object" class="oe_highlight" invisible="state != 'new'"/>
+                    <button name="action_start" string="Start" type="object" class="oe_highlight" invisible="state != 'planned'"/>
+                    <button name="action_complete" string="Complete" type="object" class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_decline" string="Decline" type="object" invisible="state in ('done','declined','duplicate')"/>
+                    <button name="action_reopen" string="Reopen" type="object" invisible="state not in ('done','declined')"/>
+                    <button name="action_clear_duplicate" string="Not a Duplicate" type="object" invisible="state != 'duplicate'"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_converted_task" type="object" class="oe_stat_button" icon="fa-tasks" invisible="not converted_task_id">
+                            <span>Task</span>
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <!-- Vote Box -->
+                        <div class="d-flex flex-column align-items-center border rounded p-2 bg-light">
+                            <!-- Upvote active -->
+                            <button name="action_upvote" type="object" class="btn btn-link p-0" title="Upvote" invisible="user_vote != 'up'">
+                                <i class="fa fa-chevron-up fa-lg text-success"/>
+                            </button>
+                            <!-- Upvote inactive -->
+                            <button name="action_upvote" type="object" class="btn btn-link p-0" title="Upvote" invisible="user_vote == 'up'">
+                                <i class="fa fa-chevron-up fa-lg text-muted"/>
+                            </button>
+                            <field name="score" readonly="1" class="fw-bold fs-5 my-1 text-center"/>
+                            <!-- Downvote active -->
+                            <button name="action_downvote" type="object" class="btn btn-link p-0" title="Downvote" invisible="user_vote != 'down'">
+                                <i class="fa fa-chevron-down fa-lg text-danger"/>
+                            </button>
+                            <!-- Downvote inactive -->
+                            <button name="action_downvote" type="object" class="btn btn-link p-0" title="Downvote" invisible="user_vote == 'down'">
+                                <i class="fa fa-chevron-down fa-lg text-muted"/>
+                            </button>
+                        </div>
+                        <!-- Title & Meta -->
+                        <div class="flex-grow-1">
+                            <div class="oe_title">
+                                <h1>
+                                    <field name="name" placeholder="Short, clear title..."/>
+                                </h1>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 text-muted small flex-wrap">
+                                <span>by <field name="submitter_id" readonly="1"/></span>
+                                <field name="create_date" readonly="1" widget="relative_time"/>
+                                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                            </div>
+                            <div class="mt-1" invisible="not voter_ids">
+                                <field name="voter_ids" widget="many2many_avatar_user" string=""/>
+                            </div>
+                        </div>
+                        <!-- Reference -->
+                        <div class="text-muted small">
+                            <field name="number" readonly="1"/>
+                        </div>
+                    </div>
+                    <field name="description" placeholder="Describe your idea or feature request in detail..." options="{'style-inline': true}"/>
+                    <group invisible="state != 'duplicate'" col="2">
+                        <field name="duplicate_of_id"/>
+                    </group>
+                    <group invisible="not response" col="2">
+                        <field name="response" readonly="1"/>
+                        <field name="response_user_id" readonly="1"/>
+                        <field name="response_date" readonly="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========================= FEED KANBAN (Fider-style) ========================= -->
+    <record id="view_idea_request_feed" model="ir.ui.view">
+        <field name="name">idea.request.feed</field>
+        <field name="model">idea.request</field>
+        <field name="arch" type="xml">
+            <kanban class="o_idea_feed_kanban" default_group_by="" default_order="trending_score desc, score desc, create_date desc" group_create="false" group_delete="false" records_draggable="0" quick_create="false">
+                <field name="name"/>
+                <field name="score"/>
+                <field name="upvote_count"/>
+                <field name="downvote_count"/>
+                <field name="comment_count"/>
+                <field name="tag_ids"/>
+                <field name="submitter_id"/>
+                <field name="create_date"/>
+                <field name="state"/>
+                <field name="user_vote"/>
+                <field name="description"/>
+                <field name="description_text"/>
+                <field name="voter_ids"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex h-100">
+                            <!-- Vote Box -->
+                            <div class="o_idea_vote_box d-flex flex-column align-items-center justify-content-center">
+                                <a type="object" name="action_upvote" class="o_idea_vote_btn" title="Upvote">
+                                    <i class="fa fa-chevron-up" t-att-class="record.user_vote.raw_value == 'up' ? 'text-success' : ''"/>
+                                </a>
+                                <span class="o_idea_vote_score" t-esc="record.score.raw_value"/>
+                                <a type="object" name="action_downvote" class="o_idea_vote_btn" title="Downvote">
+                                    <i class="fa fa-chevron-down" t-att-class="record.user_vote.raw_value == 'down' ? 'text-danger' : ''"/>
+                                </a>
+                            </div>
+                            <!-- Content -->
+                            <div class="o_idea_content d-flex flex-column">
+                                <div class="o_idea_title" t-esc="record.name.raw_value"/>
+                                <div class="o_idea_meta d-flex align-items-center flex-wrap gap-1">
+                                    <span class="o_idea_state_badge badge" t-attf-class="{{ record.state.raw_value == 'new' ? 'text-bg-secondary' : record.state.raw_value == 'planned' ? 'text-bg-info' : record.state.raw_value == 'in_progress' ? 'text-bg-primary' : record.state.raw_value == 'done' ? 'text-bg-success' : record.state.raw_value == 'declined' ? 'text-bg-danger' : 'text-bg-warning' }}">
+                                        <t t-esc="record.state.raw_value"/>
+                                    </span>
+                                    <span>by <field name="submitter_id"/></span>
+                                    <span><field name="create_date" widget="relative_time"/></span>
+                                </div>
+                                <div class="o_idea_tags mt-1" t-if="record.tag_ids.raw_value.length">
+                                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                </div>
+                                <div class="o_idea_description text-muted mt-1" t-if="record.description_text.raw_value">
+                                    <t t-esc="record.description_text.raw_value"/>
+                                </div>
+                                <div class="o_idea_voters mt-1 d-flex align-items-center gap-1" t-if="record.voter_ids.raw_value.length">
+                                    <t t-foreach="record.voter_ids.raw_value.slice(0,5)" t-as="uid">
+                                        <img t-att-src="'/web/image/res.users/' + uid + '/avatar_128'" class="rounded-circle o_idea_voter_avatar" alt=""/>
+                                    </t>
+                                    <span class="text-muted small" t-if="record.voter_ids.raw_value.length > 5">+<t t-esc="record.voter_ids.raw_value.length - 5"/></span>
+                                </div>
+                                <div class="o_idea_footer mt-auto d-flex align-items-center">
+                                    <span class="o_idea_comment_count"><i class="fa fa-comments text-info"/> <t t-esc="record.comment_count.raw_value"/></span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ========================= WORKFLOW KANBAN (grouped by state) ========================= -->
+    <record id="view_idea_request_kanban" model="ir.ui.view">
+        <field name="name">idea.request.kanban</field>
+        <field name="model">idea.request</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" group_create="false" group_delete="false" quick_create="true" records_draggable="1">
+                <field name="name"/>
+                <field name="score"/>
+                <field name="upvote_count"/>
+                <field name="comment_count"/>
+                <field name="tag_ids"/>
+                <field name="submitter_id"/>
+                <field name="create_date"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title"><field name="name"/></strong>
+                                    </div>
+                                    <div class="o_kanban_record_headings">
+                                        <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <span class="text-muted"><field name="submitter_id"/></span>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <span class="me-2" title="Score">
+                                            <i class="fa fa-star text-warning"/> <t t-esc="record.score.raw_value"/>
+                                        </span>
+                                        <span class="me-2" title="Upvotes">
+                                            <i class="fa fa-thumbs-up text-success"/> <t t-esc="record.upvote_count.raw_value"/>
+                                        </span>
+                                        <span title="Comments">
+                                            <i class="fa fa-comments text-info"/> <t t-esc="record.comment_count.raw_value"/>
+                                        </span>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="create_date" widget="date"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ========================= SEARCH VIEW ========================= -->
+    <record id="view_idea_request_search" model="ir.ui.view">
+        <field name="name">idea.request.search</field>
+        <field name="model">idea.request</field>
+        <field name="arch" type="xml">
+            <search string="Ideas">
+                <field name="name"/>
+                <field name="description"/>
+                <field name="submitter_id"/>
+                <field name="tag_ids"/>
+                <filter name="my_ideas" string="My Ideas" domain="[('submitter_id', '=', uid)]"/>
+                <filter name="hot" string="Hot (Top Score)" domain="[('score', '>=', 5)]"/>
+                <filter name="new_today" string="New Today" domain="[('create_date', '>=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="open" string="Open" domain="[('state', 'in', ('new','planned'))]"/>
+                <filter name="in_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="done" string="Done" domain="[('state', '=', 'done')]"/>
+                <filter name="declined" string="Declined" domain="[('state', '=', 'declined')]"/>
+                <filter name="converted" string="Converted to Task" domain="[('converted_task_id', '!=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_submitter" string="Submitter" context="{'group_by': 'submitter_id'}"/>
+                    <filter name="group_tag" string="Tag" context="{'group_by': 'tag_ids'}"/>
+                    <filter name="group_create_week" string="Creation Week" context="{'group_by': 'create_date:week'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ========================= PIVOT / GRAPH ========================= -->
+    <record id="view_idea_request_pivot" model="ir.ui.view">
+        <field name="name">idea.request.pivot</field>
+        <field name="model">idea.request</field>
+        <field name="arch" type="xml">
+            <pivot string="Ideas Analysis">
+                <field name="state" type="row"/>
+                <field name="create_date" type="col" interval="month"/>
+                <field name="score" type="measure"/>
+                <field name="upvote_count" type="measure"/>
+                <field name="comment_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_idea_request_graph" model="ir.ui.view">
+        <field name="name">idea.request.graph</field>
+        <field name="model">idea.request</field>
+        <field name="arch" type="xml">
+            <graph string="Ideas Analysis" type="bar">
+                <field name="create_date" interval="month"/>
+                <field name="state"/>
+                <field name="score" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ========================= ACTIONS ========================= -->
+    <record id="action_idea_request_all" model="ir.actions.act_window">
+        <field name="name">All Ideas</field>
+        <field name="res_model">idea.request</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
+        <field name="search_view_id" ref="view_idea_request_search"/>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_idea_request_feed')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_idea_request_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_idea_request_form')}),
+        ]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No ideas yet!
+            </p>
+            <p>
+                Submit the first feature request or idea.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_idea_request_trending" model="ir.actions.act_window">
+        <field name="name">Trending Ideas</field>
+        <field name="res_model">idea.request</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('state', 'in', ('new','planned','in_progress'))]</field>
+        <field name="context">{'group_by': []}</field>
+        <field name="search_view_id" ref="view_idea_request_search"/>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_idea_request_feed')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_idea_request_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_idea_request_form')}),
+        ]"/>
+    </record>
+
+    <record id="action_idea_request_top" model="ir.actions.act_window">
+        <field name="name">Top Ideas</field>
+        <field name="res_model">idea.request</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('state', 'in', ('new','planned','in_progress'))]</field>
+        <field name="context">{'group_by': [], 'search_default_hot': 1}</field>
+        <field name="search_view_id" ref="view_idea_request_search"/>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_idea_request_feed')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_idea_request_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_idea_request_form')}),
+        ]"/>
+    </record>
+
+    <record id="action_idea_request_new" model="ir.actions.act_window">
+        <field name="name">New Ideas</field>
+        <field name="res_model">idea.request</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('state', 'in', ('new','planned','in_progress'))]</field>
+        <field name="context">{'group_by': [], 'search_default_new_today': 1}</field>
+        <field name="search_view_id" ref="view_idea_request_search"/>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_idea_request_feed')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_idea_request_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_idea_request_form')}),
+        ]"/>
+    </record>
+
+    <record id="action_idea_request_completed" model="ir.actions.act_window">
+        <field name="name">Completed Ideas</field>
+        <field name="res_model">idea.request</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('state', 'in', ('done','declined','duplicate'))]</field>
+        <field name="context">{'group_by': []}</field>
+        <field name="search_view_id" ref="view_idea_request_search"/>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_idea_request_feed')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_idea_request_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_idea_request_form')}),
+        ]"/>
+    </record>
+</odoo>

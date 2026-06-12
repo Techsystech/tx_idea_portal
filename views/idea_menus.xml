@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_idea_root"
+              name="Idea Portal"
+              sequence="30"/>
+
+    <menuitem id="menu_idea_dashboard"
+              name="Dashboard"
+              parent="menu_idea_root"
+              action="action_idea_request_all"
+              sequence="10"/>
+
+    <menuitem id="menu_idea_trending"
+              name="Trending"
+              parent="menu_idea_root"
+              action="action_idea_request_trending"
+              sequence="20"/>
+
+    <menuitem id="menu_idea_top"
+              name="Top"
+              parent="menu_idea_root"
+              action="action_idea_request_top"
+              sequence="25"/>
+
+    <menuitem id="menu_idea_new"
+              name="New"
+              parent="menu_idea_root"
+              action="action_idea_request_new"
+              sequence="27"/>
+
+    <menuitem id="menu_idea_completed"
+              name="Completed"
+              parent="menu_idea_root"
+              action="action_idea_request_completed"
+              sequence="28"/>
+
+    <menuitem id="menu_idea_configuration"
+              name="Configuration"
+              parent="menu_idea_root"
+              sequence="100"
+              groups="tx_idea_portal.group_idea_manager"/>
+
+    <menuitem id="menu_idea_tags"
+              name="Tags"
+              parent="menu_idea_configuration"
+              action="action_idea_tag"
+              sequence="10"/>
+</odoo>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="module_category_idea_portal" model="ir.module.category">
+        <field name="name">Idea Portal</field>
+        <field name="description">Internal idea and feature request portal</field>
+        <field name="sequence">50</field>
+    </record>
+
+    <record id="group_idea_user" model="res.groups">
+        <field name="name">Idea User</field>
+        <field name="category_id" ref="module_category_idea_portal"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_idea_manager" model="res.groups">
+        <field name="name">Idea Manager</field>
+        <field name="category_id" ref="module_category_idea_portal"/>
+        <field name="implied_ids" eval="[(4, ref('group_idea_user'))]"/>
+    </record>
+
+    <!-- Record Rules -->
+    <record id="rule_idea_request_own" model="ir.rule">
+        <field name="name">Idea Request: own or public</field>
+        <field name="model_id" ref="model_idea_request"/>
+        <field name="domain_force">['|', ('submitter_id', '=', user.id), ('submitter_id', '!=', False)]</field>
+        <field name="groups" eval="[(4, ref('group_idea_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_idea_request_manager" model="ir.rule">
+        <field name="name">Idea Request: manager full access</field>
+        <field name="model_id" ref="model_idea_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_idea_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_idea_vote_own" model="ir.rule">
+        <field name="name">Idea Vote: own only</field>
+        <field name="model_id" ref="model_idea_vote"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_idea_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_idea_vote_manager" model="ir.rule">
+        <field name="name">Idea Vote: manager full access</field>
+        <field name="model_id" ref="model_idea_vote"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_idea_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

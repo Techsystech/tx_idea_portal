@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_idea_request_user,Idea Request User,model_idea_request,tx_idea_portal.group_idea_user,1,1,1,0
+access_idea_request_manager,Idea Request Manager,model_idea_request,tx_idea_portal.group_idea_manager,1,1,1,1
+access_idea_vote_user,Idea Vote User,model_idea_vote,tx_idea_portal.group_idea_user,1,1,1,1
+access_idea_vote_manager,Idea Vote Manager,model_idea_vote,tx_idea_portal.group_idea_manager,1,1,1,1
+access_idea_tag_user,Idea Tag User,model_idea_tag,tx_idea_portal.group_idea_user,1,0,0,0
+access_idea_tag_manager,Idea Tag Manager,model_idea_tag,tx_idea_portal.group_idea_manager,1,1,1,1
+access_idea_convert_task_wizard_user,Idea Convert Task Wizard User,model_idea_convert_task_wizard,tx_idea_portal.group_idea_user,1,1,1,1
+access_idea_convert_task_wizard_manager,Idea Convert Task Wizard Manager,model_idea_convert_task_wizard,tx_idea_portal.group_idea_manager,1,1,1,1
+access_idea_mark_duplicate_wizard_user,Idea Mark Duplicate Wizard User,model_idea_mark_duplicate_wizard,tx_idea_portal.group_idea_user,1,1,1,1
+access_idea_mark_duplicate_wizard_manager,Idea Mark Duplicate Wizard Manager,model_idea_mark_duplicate_wizard,tx_idea_portal.group_idea_manager,1,1,1,1

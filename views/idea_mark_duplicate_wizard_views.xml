@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_idea_mark_duplicate_wizard_form" model="ir.ui.view">
+        <field name="name">idea.mark.duplicate.wizard.form</field>
+        <field name="model">idea.mark.duplicate.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Mark as Duplicate">
+                <group>
+                    <field name="idea_id" readonly="1"/>
+                    <field name="original_idea_id"/>
+                </group>
+                <footer>
+                    <button name="action_mark_duplicate" string="Mark as Duplicate" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_idea_mark_duplicate_wizard" model="ir.actions.act_window">
+        <field name="name">Mark as Duplicate</field>
+        <field name="res_model">idea.mark.duplicate.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_idea_request"/>
+    </record>
+
+    <record id="view_idea_request_form_inherit_duplicate" model="ir.ui.view">
+        <field name="name">idea.request.form.duplicate.button</field>
+        <field name="model">idea.request</field>
+        <field name="inherit_id" ref="view_idea_request_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="%(action_idea_mark_duplicate_wizard)d" string="Mark as Duplicate" type="action" invisible="state in ('done','declined','duplicate')"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
